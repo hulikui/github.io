@@ -851,7 +851,7 @@
             temp = bucket;
             var groups = group(images, {
                 clientWidth: bucket.clientWidth,
-                rowHeight: 150
+                rowHeight: 70
             });
             bucket.innerHTML = '';
             _this.addImage(images, {
@@ -872,10 +872,15 @@
         //拼图布局处理
         var imgs = frame.children;
         return Array.prototype.map.call(imgs, function(img){
+            console.log(img,img.naturalWidth, img.naturalHeight, img.naturalWidth/img.naturalHeight);
+            var ratio = img.naturalWidth/img.naturalHeight;//获取为空的情况
+            if(!ratio){
+                ratio = 1;
+            }
             return {
                 width: img.naturalWidth,
                 height: img.naturalHeight,
-                ratio: img.naturalWidth/img.naturalHeight,
+                ratio: ratio,
                 src: img.src
             }
         });
@@ -904,8 +909,8 @@
                 for(var i=group.start;i<=group.end;i++){
                     var img = document.createElement('IMG');
                     var style = {
-                        width: Math.floor(image[i].ratio*group.height),
-                        height: Math.floor(group.height),
+                        width: Math.floor(image[i].ratio*group.height)-0.5,
+                        height: Math.floor(group.height)
                         //paddingLeft: padding.BARREL.y
                     };
                     setStyles(img, style);

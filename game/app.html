@@ -97,7 +97,7 @@
     //对象数组设置障碍点
     function setMapblock(stones, len, step , eaer) {
         var val = 1;
-        if(eaer){
+        if(eaer == 0){
             val = 0;
         }
         for(var i=0;i<len;i++){
@@ -688,6 +688,7 @@
             console.log('enemys' , enemys);
             //设置target 附近无障碍区
             var eaer = new Eraser(6*roleWid, this.wall.height-roleWid*2, this.wall.width -12*roleWid, 2*roleWid, '#C0C0C0');
+            console.log('无障碍区',   eaer);
             this.objects.push(eaer);
             var role = new Sprite(this.wall.x +　r_x, this.wall.y + roleWid, roleWid, '#009a61');
             this.objects.push(role);
@@ -921,6 +922,11 @@
                         //游戏结束
                         console.log('GAME OVER！');
                         clearInterval(shotID);
+                        if(confirm('GAME OVER')){
+                            level =0 ;
+                            sessionStorage.level = level;
+                            location.reload();
+                        }
                     }
 
                     if(fadeBullet){//是否销毁子弹

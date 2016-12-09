@@ -24,7 +24,8 @@
 .barrel {
     display: flex;
     flex-flow: wrap;
-    /*justify-content: space-around;*/
+    justify-content: flex-start;
+    align-content: flex-start;
 }
 
 .black_overlay{

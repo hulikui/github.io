@@ -1,1114 +1,1117 @@
 (function (window) {
 
-    // ÓÉÓÚÊÇµÚÈı·½¿â£¬ÎÒÃÇÊ¹ÓÃÑÏ¸ñÄ£Ê½£¬¾¡¿ÉÄÜ·¢ÏÖÇ±ÔÚÎÊÌâ
-    'use strict';
+  // ç”±äºæ˜¯ç¬¬ä¸‰æ–¹åº“ï¼Œæˆ‘ä»¬ä½¿ç”¨ä¸¥æ ¼æ¨¡å¼ï¼Œå°½å¯èƒ½å‘ç°æ½œåœ¨é—®é¢˜
+  'use strict';
 
-    function IfeAlbum() {
+  function IfeAlbum() {
 
-        // ²¼¾ÖµÄÃ¶¾ÙÀàĞÍ
-        this.LAYOUT = {
-            PUZZLE: 1,    // Æ´Í¼²¼¾Ö
-            WATERFALL: 2, // ÆÙ²¼²¼¾Ö
-            BARREL: 3     // Ä¾Í°²¼¾Ö
-        };
+    // å¸ƒå±€çš„æšä¸¾ç±»å‹
+    this.LAYOUT = {
+      PUZZLE: 1,    // æ‹¼å›¾å¸ƒå±€
+      WATERFALL: 2, // ç€‘å¸ƒå¸ƒå±€
+      BARREL: 3     // æœ¨æ¡¶å¸ƒå±€
+    };
 
-        // ¹«ÓĞ±äÁ¿¿ÉÒÔĞ´ÔÚÕâÀï
-        this.padding = {
-            PUZZLE: {
-                x: 0,
-                y: 0
-            },
-            WATERFALL: {
-                x: 0,
-                y: 0
-            }, // ÆÙ²¼²¼¾Ö
-            BARREL: {
-                x: 0,
-                y: 0
-            }
-        };
-        this.isFullScreen = true;
+    // å…¬æœ‰å˜é‡å¯ä»¥å†™åœ¨è¿™é‡Œ
+    this.padding = {
+      PUZZLE: {
+        x: 0,
+        y: 0
+      },
+      WATERFALL: {
+        x: 0,
+        y: 0
+      }, // ç€‘å¸ƒå¸ƒå±€
+      BARREL: {
+        x: 0,
+        y: 0
+      }
+    };
+    this.isFullScreen = true;
 
 
+  }
+
+  // ç§æœ‰å˜é‡å¯ä»¥å†™åœ¨è¿™é‡Œ
+  /**
+   * å…¬å…±å˜é‡ï¼Œä»¥ä¾¿è·å–
+   * */
+  // ç”¨æˆ·è®¾ç½®ç›¸å†Œå›¾ç‰‡é—´è·çš„å˜é‡
+  var padding = {
+    PUZZLE: {
+      x: 0,
+      y: 0
+    },
+    WATERFALL: {
+      x: 0,
+      y: 0
+    }, // ç€‘å¸ƒå¸ƒå±€
+    BARREL: {
+      x: 0,
+      y: 0
     }
+  };
+  //ä¸´æ—¶ç¼“å†²åŒº
+  var temp;
+  //æ˜¯å¦å·²ç»å…¨å±
+  var isShowed = false;
+  //è·å–éœ€è¦è£å‰ªå›¾ç‰‡çš„æ ·å¼
+  function getClipImgStyle(contain, img) {
+    var wdiff = img.width-contain.width*img.height/contain.height;
+    var hdiff=0;
+    var styles;
+    wdiff = parseInt(wdiff);
+    if(wdiff<0){//é«˜åº¦ä¸å¤Ÿ,ä»¥å®½åº¦å¯¹é½ç¼©æ”¾ï¼Œé«˜åº¦æº¢å‡º
+      hdiff = img.height-contain.height*img.width/contain.width;
+      hdiff = parseInt(hdiff);
+      var height = img.height*contain.width/img.width;
+      hdiff = height-contain.height;
+      styles={
+        width: contain.width,
+        height: height,
+        marginTop: -hdiff/2
+      }
+    }else if(wdiff == 0){//è¯æ˜æ¯”ä¾‹ä¸€è‡´
+      styles = {
+        width: '100%',
+        height: '100%'
+      }
+    }else{//ä»¥ç›¸æ¡†é«˜åº¦ä¸ºé½ç¼©æ”¾,å®½åº¦æº¢å‡º
+      var width = img.width*contain.height/img.height;
+      wdiff = width -contain.width;
+      styles = {
+        width: width,
+        height: contain.height,
+        marginLeft: -wdiff/2
+      }
+    }
+    return styles;
+  }
+  //æ ¹æ®å¯¹è±¡è®¾ç½®æ ·å¼
+  var setStyles = function (obj, styles) {
+    for (var style in styles) {
+      obj['style'][style] = styles[style];
+    }
+  };
+  //æ ¹æ®å¯¹è±¡è®¾ç½®å±æ€§
+  var setAttr = function(obj, attrs){
+    for (var attr in attrs) {
+      obj[attr] = attrs[attr];
+    }
+  };
+  //è·å–æ¯ä¸€ä¸ªç›¸å†Œ
+  function getFrames(divs, isFullscreenEnabled){
+    return Array.prototype.map.call(divs, function(div){
+      if(isFullscreenEnabled){
+        div.addEventListener("click", function(e){
+          if(e.target.tagName == 'IMG'){
+            showPhoto(e.target);
+          }
+        });
+      }
 
-    // Ë½ÓĞ±äÁ¿¿ÉÒÔĞ´ÔÚÕâÀï
-    /**
-     * ¹«¹²±äÁ¿£¬ÒÔ±ã»ñÈ¡
-     * */
-    // ÓÃ»§ÉèÖÃÏà²áÍ¼Æ¬¼ä¾àµÄ±äÁ¿
-    var padding = {
-        PUZZLE: {
-            x: 0,
-            y: 0
+      return div;
+    });
+  }
+  /**
+   * æ‹¼å›¾å¸ƒå±€çš„ç§æœ‰æ–¹æ³•
+   * */
+  //è·å–æ‹¼å›¾å¸ƒå±€çš„ç›¸å†Œæ ·å¼
+  function getPuzzleFrameStyle(frameObj, nums) {
+    var width = frameObj.width;
+    var height = frameObj.height;
+    console.log(frameObj.width, frameObj.height);
+    var innerFrameStyles = []; //å¥—åœ¨å›¾ç‰‡å¤–å±‚çš„divæ ·å¼
+    var outterFrameStyle = [];//å…³ä¹å›¾åƒå¸ƒå±€çš„divæ ·å¼
+    var frameStyle = { //ç›¸å†Œçš„style
+      width: width,
+      height: height,
+      display: 'flex'
+    };
+    //è®¡ç®—é®ç½©æ•ˆæœ ç›¸å¯¹ä½ç½®
+    var paddingStyles = {};
+    var left_width = width/2;
+    var right_width = height/2;
+    var min_height = height/3;
+    if(nums == 1){
+      frameStyle.overflow = 'hidden';
+    }else if (nums == 2) {
+      frameStyle.display = '';
+      frameStyle.position = 'relative';
+
+    }else if(nums == 3) {
+      left_width = width - height/2;
+      paddingStyles = {
+        obj1: {
+          left: left_width-padding.PUZZLE.y,
+          top: 0,
+          width: padding.PUZZLE.x*2,
+          height: height
         },
-        WATERFALL: {
-            x: 0,
-            y: 0
-        }, // ÆÙ²¼²¼¾Ö
-        BARREL: {
-            x: 0,
-            y: 0
+        obj2: {
+          left: left_width,
+          top: height/2 - padding.PUZZLE.x,
+          width: height/2,
+          height: padding.PUZZLE.x*2
         }
+      };
+      innerFrameStyles = [{
+        width:left_width,
+        height: height,
+        overflow: 'hidden'
+      }, {
+        width: right_width,
+        height: right_width,
+        overflow: 'hidden'
+      },{
+        width: right_width,
+        height: right_width,
+        overflow: 'hidden'
+      }];
+    }else if(nums == 4){
+      frameStyle.flexWrap='wrap';
+      paddingStyles = {
+        obj1: {
+          left: left_width-padding.PUZZLE.y,
+          top: 0,
+          width: padding.PUZZLE.x*2,
+          height: height
+        },
+        obj2: {
+          left: 0,
+          top: height/2-padding.PUZZLE.x,
+          width: width,
+          height: padding.PUZZLE.x*2
+        }
+      };
+      innerFrameStyles = {
+        width: left_width,
+        height: right_width,
+        overflow: 'hidden'
+      };
+    }else if(nums == 5){
+      left_width = width*2/3;
+      right_width = width/3;
+      paddingStyles = {
+        obj1: {
+          left: 0,
+          top: min_height*2 - padding.PUZZLE.x,
+          width: left_width,
+          height: padding.PUZZLE.x*2
+        },
+        obj2: {
+          left: left_width-padding.PUZZLE.y,
+          top: 0,
+          width: padding.PUZZLE.y*2,
+          height: height
+        },
+        obj3: {
+          left: right_width-padding.PUZZLE.y,
+          top: min_height*2,
+          width: padding.PUZZLE.y*2,
+          height: min_height
+        },
+        obj4: {
+          left: left_width,
+          top: right_width - padding.PUZZLE.x,
+          width: right_width,
+          height: padding.PUZZLE.x*2
+        }
+      };
+      innerFrameStyles=[{
+        width: left_width,
+        height: min_height*2,
+        overflow: 'hidden'
+      },{
+        width: left_width/2,
+        height: min_height,
+        overflow: 'hidden'
+      },{
+        width: left_width/2,
+        height: min_height,
+        overflow: 'hidden'
+      },{
+        width: right_width,
+        height: width/3,
+        overflow: 'hidden'
+      },{
+        width: right_width,
+        height: height-right_width,
+        overflow: 'hidden'
+      }];
+      outterFrameStyle = {
+        width: left_width,
+        height: min_height,
+        display: 'flex'
+      };
+    }else if(nums == 6){
+      left_width = width*2/3;
+      right_width = width/3;
+      paddingStyles = {
+        obj1: {
+          left: 0,
+          top: min_height*2 - padding.PUZZLE.x,
+          width: left_width,
+          height: padding.PUZZLE.x*2
+        },
+        obj2: {
+          left: left_width-padding.PUZZLE.y,
+          top: 0,
+          width: padding.PUZZLE.y*2,
+          height: height
+        },
+        obj3: {
+          left: right_width-padding.PUZZLE.y,
+          top: min_height*2,
+          width: padding.PUZZLE.y*2,
+          height: min_height
+        },
+        obj4: {
+          left: left_width,
+          top: min_height - padding.PUZZLE.x,
+          width: right_width,
+          height: padding.PUZZLE.x*2
+        },
+        obj5: {
+          left: left_width,
+          top: min_height*2 - padding.PUZZLE.x,
+          width: right_width,
+          height: padding.PUZZLE.x*2
+        }
+      };
+      innerFrameStyles = [{
+        width: left_width,
+        height: min_height*2,
+        overflow: 'hidden'
+      },{
+        width: left_width/2,
+        height: min_height,
+        overflow: 'hidden'
+      },{
+        width: left_width/2,
+        height: min_height,
+        overflow: 'hidden'
+      },{
+        width: right_width,
+        height: min_height,
+        overflow: 'hidden'
+      },{
+        width: right_width,
+        height: min_height,
+        overflow: 'hidden'
+      },{
+        width: right_width,
+        height: min_height,
+        overflow: 'hidden'
+      }];
+      outterFrameStyle = {
+        width: left_width,
+        height: min_height,
+        display: 'flex'
+      };
+    }
+
+    return {
+      innerFrameStyles: innerFrameStyles, //å¥—åœ¨å›¾ç‰‡å¤–å±‚çš„divæ ·å¼
+      outterFrameStyle: outterFrameStyle, //å…³ä¹å›¾åƒå¸ƒå±€çš„divæ ·å¼
+      frameStyle: frameStyle,              //ç›¸å†Œæœ€å¤–å±‚æ ·å¼
+      paddingStyles: paddingStyles        //paddingçš„é®ç½©æ•ˆæœ
     };
-    //ÁÙÊ±»º³åÇø
-    var temp;
-    //ÊÇ·ñÒÑ¾­È«ÆÁ
-    var isShowed = false;
-    //»ñÈ¡ĞèÒª²Ã¼ôÍ¼Æ¬µÄÑùÊ½
-    function getClipImgStyle(contain, img) {
-        var wdiff = img.width-contain.width*img.height/contain.height;
-        var hdiff=0;
-        var styles;
-        wdiff = parseInt(wdiff);
-        if(wdiff<0){//¸ß¶È²»¹»,ÒÔ¿í¶È¶ÔÆëËõ·Å£¬¸ß¶ÈÒç³ö
-            hdiff = img.height-contain.height*img.width/contain.width;
-            hdiff = parseInt(hdiff);
-            var height = img.height*contain.width/img.width;
-            hdiff = height-contain.height;
-            styles={
-                width: contain.width,
-                height: height,
-                marginTop: -hdiff/2
-            }
-        }else if(wdiff == 0){//Ö¤Ã÷±ÈÀıÒ»ÖÂ
-            styles = {
-                width: '100%',
-                height: '100%'
-            }
-        }else{//ÒÔÏà¿ò¸ß¶ÈÎªÆëËõ·Å,¿í¶ÈÒç³ö
-            var width = img.width*contain.height/img.height;
-            wdiff = width -contain.width;
-            styles = {
-                width: width,
-                height: contain.height,
-                marginLeft: -wdiff/2
-            }
-        }
-        return styles;
-    }
-    //¸ù¾İ¶ÔÏóÉèÖÃÑùÊ½
-    var setStyles = function (obj, styles) {
-        for (var style in styles) {
-            obj['style'][style] = styles[style];
-        }
+
+  }
+  //è·å–æ‹¼å›¾å¸ƒå±€ç…§ç‰‡æ ·å¼
+  function getPuzzleImgStyles(imgs, contain) {
+
+    return Array.prototype.map.call(imgs, function(img, index){
+      var container = contain;
+      if(imgs.length>2 && imgs.length!=4){
+        container = contain[index];
+      }
+      var imgStyle = getClipImgStyle(container, {
+        width: img.naturalWidth,
+        height: img.naturalHeight
+      });
+      if(imgs.length == 2){
+        imgStyle.position = 'absolute';
+      }
+
+      return imgStyle;
+    });
+  }
+  //æ ¹æ®å¯¹è±¡ä¸ªæ•°ç¡®å®šæ‹¼å›¾å¸ƒå±€
+  var puzzleLayout = function(obj) {//objç›¸å†Œ
+
+    var imgs = obj.children;
+    var contain = {
+      width: obj.clientWidth,
+      height: obj.clientHeight
     };
-    //¸ù¾İ¶ÔÏóÉèÖÃÊôĞÔ
-    var setAttr = function(obj, attrs){
-        for (var attr in attrs) {
-            obj[attr] = attrs[attr];
+    var imgStyles;
+    var frameStyles;
+    var frameStyle;
+    var innerObjs;
+    var innerFrameStyles;
+    var imgPaddings = {};
+    if(imgs.length == 1){
+      imgStyles = getPuzzleImgStyles(imgs, contain);
+      frameStyles = getPuzzleFrameStyle(contain, 1);
+      frameStyle = frameStyles.frameStyle;
+      innerObjs = {
+        obj: {
+          innerFrameStyle: '',
+          imgStyle: imgStyles[0],
+          img: imgs[0]
         }
-    };
-    //»ñÈ¡Ã¿Ò»¸öÏà²á
-    function getFrames(divs, isFullscreenEnabled){
-        return Array.prototype.map.call(divs, function(div){
-            if(isFullscreenEnabled){
-                div.addEventListener("click", function(e){
-                    if(e.target.tagName == 'IMG'){
-                        showPhoto(e.target);
-                    }
-                });
-            }
-
-            return div;
-        });
-    }
-    /**
-     * Æ´Í¼²¼¾ÖµÄË½ÓĞ·½·¨
-     * */
-    //»ñÈ¡Æ´Í¼²¼¾ÖµÄÏà²áÑùÊ½
-    function getPuzzleFrameStyle(frameObj, nums) {
-        var width = frameObj.width;
-        var height = frameObj.height;
-        console.log(frameObj.width, frameObj.height);
-        var innerFrameStyles = []; //Ì×ÔÚÍ¼Æ¬Íâ²ãµÄdivÑùÊ½
-        var outterFrameStyle = [];//¹ØºõÍ¼Ïñ²¼¾ÖµÄdivÑùÊ½
-        var frameStyle = { //Ïà²áµÄstyle
-            width: width,
-            height: height,
-            display: 'flex'
-        };
-        //¼ÆËãÕÚÕÖĞ§¹û Ïà¶ÔÎ»ÖÃ
-        var paddingStyles = {};
-        var left_width = width/2;
-        var right_width = height/2;
-        var min_height = height/3;
-        if(nums == 1){
-            frameStyle.overflow = 'hidden';
-        }else if (nums == 2) {
-            frameStyle.display = '';
-            frameStyle.position = 'relative';
-
-        }else if(nums == 3) {
-            left_width = width - height/2;
-            paddingStyles = {
-                obj1: {
-                    left: left_width-padding.PUZZLE.y,
-                    top: 0,
-                    width: padding.PUZZLE.x*2,
-                    height: height
-                },
-                obj2: {
-                    left: left_width,
-                    top: height/2 - padding.PUZZLE.x,
-                    width: height/2,
-                    height: padding.PUZZLE.x*2
-                }
-            };
-            innerFrameStyles = [{
-                width:left_width,
-                height: height,
-                overflow: 'hidden'
-            }, {
-                width: right_width,
-                height: right_width,
-                overflow: 'hidden'
-            },{
-                width: right_width,
-                height: right_width,
-                overflow: 'hidden'
-            }];
-        }else if(nums == 4){
-            frameStyle.flexWrap='wrap';
-            paddingStyles = {
-                obj1: {
-                    left: left_width-padding.PUZZLE.y,
-                    top: 0,
-                    width: padding.PUZZLE.x*2,
-                    height: height
-                },
-                obj2: {
-                    left: 0,
-                    top: height/2-padding.PUZZLE.x,
-                    width: width,
-                    height: padding.PUZZLE.x*2
-                }
-            };
-            innerFrameStyles = {
-                width: left_width,
-                height: right_width,
-                overflow: 'hidden'
-            };
-        }else if(nums == 5){
-            left_width = width*2/3;
-            right_width = width/3;
-            paddingStyles = {
-                obj1: {
-                    left: 0,
-                    top: min_height*2 - padding.PUZZLE.x,
-                    width: left_width,
-                    height: padding.PUZZLE.x*2
-                },
-                obj2: {
-                    left: left_width-padding.PUZZLE.y,
-                    top: 0,
-                    width: padding.PUZZLE.y*2,
-                    height: height
-                },
-                obj3: {
-                    left: right_width-padding.PUZZLE.y,
-                    top: min_height*2,
-                    width: padding.PUZZLE.y*2,
-                    height: min_height
-                },
-                obj4: {
-                    left: left_width,
-                    top: right_width - padding.PUZZLE.x,
-                    width: right_width,
-                    height: padding.PUZZLE.x*2
-                }
-            };
-            innerFrameStyles=[{
-                width: left_width,
-                height: min_height*2,
-                overflow: 'hidden'
-            },{
-                width: left_width/2,
-                height: min_height,
-                overflow: 'hidden'
-            },{
-                width: left_width/2,
-                height: min_height,
-                overflow: 'hidden'
-            },{
-                width: right_width,
-                height: width/3,
-                overflow: 'hidden'
-            },{
-                width: right_width,
-                height: height-right_width,
-                overflow: 'hidden'
-            }];
-            outterFrameStyle = {
-                width: left_width,
-                height: min_height,
-                display: 'flex'
-            };
-        }else if(nums == 6){
-            left_width = width*2/3;
-            right_width = width/3;
-            paddingStyles = {
-                obj1: {
-                    left: 0,
-                    top: min_height*2 - padding.PUZZLE.x,
-                    width: left_width,
-                    height: padding.PUZZLE.x*2
-                },
-                obj2: {
-                    left: left_width-padding.PUZZLE.y,
-                    top: 0,
-                    width: padding.PUZZLE.y*2,
-                    height: height
-                },
-                obj3: {
-                    left: right_width-padding.PUZZLE.y,
-                    top: min_height*2,
-                    width: padding.PUZZLE.y*2,
-                    height: min_height
-                },
-                obj4: {
-                    left: left_width,
-                    top: min_height - padding.PUZZLE.x,
-                    width: right_width,
-                    height: padding.PUZZLE.x*2
-                },
-                obj5: {
-                    left: left_width,
-                    top: min_height*2 - padding.PUZZLE.x,
-                    width: right_width,
-                    height: padding.PUZZLE.x*2
-                }
-            };
-            innerFrameStyles = [{
-                width: left_width,
-                height: min_height*2,
-                overflow: 'hidden'
-            },{
-                width: left_width/2,
-                height: min_height,
-                overflow: 'hidden'
-            },{
-                width: left_width/2,
-                height: min_height,
-                overflow: 'hidden'
-            },{
-                width: right_width,
-                height: min_height,
-                overflow: 'hidden'
-            },{
-                width: right_width,
-                height: min_height,
-                overflow: 'hidden'
-            },{
-                width: right_width,
-                height: min_height,
-                overflow: 'hidden'
-            }];
-            outterFrameStyle = {
-                width: left_width,
-                height: min_height,
-                display: 'flex'
-            };
+      };
+    }else if(imgs.length == 2){
+      var imgAttrs = ['left_tx', 'right_tx'];//img å±æ€§
+      imgStyles = getPuzzleImgStyles(imgs, contain);
+      frameStyles = getPuzzleFrameStyle(contain, 2);
+      frameStyle = frameStyles.frameStyle;
+      innerObjs = {
+        obj1: {
+          img: imgs[0],
+          imgAttr: {
+            className: imgAttrs[0]
+          },
+          imgStyle: imgStyles[0]
+        },
+        obj2: {
+          img: imgs[1],
+          imgAttr: {
+            className: imgAttrs[1]
+          },
+          imgStyle: imgStyles[0]
         }
+      };
 
-        return {
-            innerFrameStyles: innerFrameStyles, //Ì×ÔÚÍ¼Æ¬Íâ²ãµÄdivÑùÊ½
-            outterFrameStyle: outterFrameStyle, //¹ØºõÍ¼Ïñ²¼¾ÖµÄdivÑùÊ½
-            frameStyle: frameStyle,              //Ïà²á×îÍâ²ãÑùÊ½
-            paddingStyles: paddingStyles        //paddingµÄÕÚÕÖĞ§¹û
-        };
-
-    }
-    //»ñÈ¡Æ´Í¼²¼¾ÖÕÕÆ¬ÑùÊ½
-    function getPuzzleImgStyles(imgs, contain) {
-
-        return Array.prototype.map.call(imgs, function(img, index){
-            var container = contain;
-            if(imgs.length>2 && imgs.length!=4){
-                container = contain[index];
-            }
-            var imgStyle = getClipImgStyle(container, {
-                width: img.naturalWidth,
-                height: img.naturalHeight
-            });
-            if(imgs.length == 2){
-                imgStyle.position = 'absolute';
+    }else if(imgs.length ==3){
+      frameStyles = getPuzzleFrameStyle(contain, 3);
+      innerFrameStyles = frameStyles.innerFrameStyles;
+      frameStyle = frameStyles.frameStyle;
+      imgStyles = getPuzzleImgStyles(imgs, innerFrameStyles);
+      imgPaddings = frameStyles.paddingStyles;
+      innerObjs = {
+        obj1: {
+          innerFrameStyle: innerFrameStyles[0],
+          img: imgs[0],
+          imgStyle: imgStyles[0]
+        },
+        obj2: {
+          innerFrameStyle: '',
+          innerObj: {
+            sameNums: Array.prototype.slice.apply(imgs,[1,3]),
+            obj: {
+              innerFrameStyle: innerFrameStyles[1],
+              imgStyle: imgStyles[1]
             }
 
-            return imgStyle;
-        });
-    }
-    //¸ù¾İ¶ÔÏó¸öÊıÈ·¶¨Æ´Í¼²¼¾Ö
-    var puzzleLayout = function(obj) {//objÏà²á
+          }
+        }
+      };
 
-        var imgs = obj.children;
-        var contain = {
-            width: obj.clientWidth,
-            height: obj.clientHeight
-        };
-        var imgStyles;
-        var frameStyles;
-        var frameStyle;
-        var innerObjs;
-        var innerFrameStyles;
-        var imgPaddings = {};
-        if(imgs.length == 1){
-            imgStyles = getPuzzleImgStyles(imgs, contain);
-            frameStyles = getPuzzleFrameStyle(contain, 1);
-            frameStyle = frameStyles.frameStyle;
-            innerObjs = {
+    }else if(imgs.length == 4){
+      frameStyles = getPuzzleFrameStyle(contain, 4);
+      frameStyle = frameStyles.frameStyle;
+      innerFrameStyles = frameStyles.innerFrameStyles;
+      imgStyles = getPuzzleImgStyles(imgs, innerFrameStyles);
+      imgPaddings = frameStyles.paddingStyles;
+      innerObjs = {
+        sameNums: Array.prototype.slice.apply(imgs,[0,4]),
+        obj: {
+          innerFrameStyle: innerFrameStyles,
+          imgStyle: imgStyles[0]
+        }
+      };
+    }else if(imgs.length == 5){
+      frameStyles = getPuzzleFrameStyle(contain, 5);
+      frameStyle = frameStyles.frameStyle;
+      innerFrameStyles = frameStyles.innerFrameStyles;
+      imgStyles = getPuzzleImgStyles(imgs, innerFrameStyles);
+      imgPaddings = frameStyles.paddingStyles;
+      innerObjs = {
+        obj1: {
+          innerFrameStyle: '',
+          innerObj: {
+            obj1: {
+              innerFrameStyle: innerFrameStyles[0],
+              img: imgs[0],
+              imgStyle: imgStyles[0]
+            },
+            obj2: {
+              innerFrameStyle: frameStyles.outterFrameStyle,
+              innerObj: {
+                sameNums: Array.prototype.slice.apply(imgs,[1,3]),
                 obj: {
-                    innerFrameStyle: '',
-                    imgStyle: imgStyles[0],
-                    img: imgs[0]
+                  innerFrameStyle: innerFrameStyles[1],
+                  imgStyle: imgStyles[1]
                 }
-            };
-        }else if(imgs.length == 2){
-            var imgAttrs = ['left_tx', 'right_tx'];//img ÊôĞÔ
-            imgStyles = getPuzzleImgStyles(imgs, contain);
-            frameStyles = getPuzzleFrameStyle(contain, 2);
-            frameStyle = frameStyles.frameStyle;
-            innerObjs = {
-                obj1: {
-                    img: imgs[0],
-                    imgAttr: {
-                        className: imgAttrs[0]
-                    },
-                    imgStyle: imgStyles[0]
-                },
-                obj2: {
-                    img: imgs[1],
-                    imgAttr: {
-                        className: imgAttrs[1]
-                    },
-                    imgStyle: imgStyles[0]
-                }
-            };
-
-        }else if(imgs.length ==3){
-            frameStyles = getPuzzleFrameStyle(contain, 3);
-            innerFrameStyles = frameStyles.innerFrameStyles;
-            frameStyle = frameStyles.frameStyle;
-            imgStyles = getPuzzleImgStyles(imgs, innerFrameStyles);
-            imgPaddings = frameStyles.paddingStyles;
-            innerObjs = {
-                obj1: {
-                    innerFrameStyle: innerFrameStyles[0],
-                    img: imgs[0],
-                    imgStyle: imgStyles[0]
-                },
-                obj2: {
-                    innerFrameStyle: '',
-                    innerObj: {
-                        sameNums: Array.prototype.slice.apply(imgs,[1,3]),
-                        obj: {
-                            innerFrameStyle: innerFrameStyles[1],
-                            imgStyle: imgStyles[1]
-                        }
-
-                    }
-                }
-            };
-
-        }else if(imgs.length == 4){
-            frameStyles = getPuzzleFrameStyle(contain, 4);
-            frameStyle = frameStyles.frameStyle;
-            innerFrameStyles = frameStyles.innerFrameStyles;
-            imgStyles = getPuzzleImgStyles(imgs, innerFrameStyles);
-            imgPaddings = frameStyles.paddingStyles;
-            innerObjs = {
-                sameNums: Array.prototype.slice.apply(imgs,[0,4]),
-                obj: {
-                    innerFrameStyle: innerFrameStyles,
-                    imgStyle: imgStyles[0]
-                }
-            };
-        }else if(imgs.length == 5){
-            frameStyles = getPuzzleFrameStyle(contain, 5);
-            frameStyle = frameStyles.frameStyle;
-            innerFrameStyles = frameStyles.innerFrameStyles;
-            imgStyles = getPuzzleImgStyles(imgs, innerFrameStyles);
-            imgPaddings = frameStyles.paddingStyles;
-            innerObjs = {
-                obj1: {
-                    innerFrameStyle: '',
-                    innerObj: {
-                        obj1: {
-                            innerFrameStyle: innerFrameStyles[0],
-                            img: imgs[0],
-                            imgStyle: imgStyles[0]
-                        },
-                        obj2: {
-                            innerFrameStyle: frameStyles.outterFrameStyle,
-                            innerObj: {
-                                sameNums: Array.prototype.slice.apply(imgs,[1,3]),
-                                obj: {
-                                    innerFrameStyle: innerFrameStyles[1],
-                                    imgStyle: imgStyles[1]
-                                }
-                            }
-                        }
-                    }
-                },
-                obj2: {
-                    innerFrameStyle: '',
-                    innerObj: {
-                        obj1: {
-                            innerFrameStyle: innerFrameStyles[3],
-                            img: imgs[3],
-                            imgStyle: imgStyles[3]
-                        },
-                        obj2: {
-                            innerFrameStyle: innerFrameStyles[4],
-                            img: imgs[4],
-                            imgStyle: imgStyles[4]
-                        }
-                    }
-                }
-            };
-
-
-        }else if(imgs.length == 6) {
-            frameStyles = getPuzzleFrameStyle(contain, 6);
-            innerFrameStyles = frameStyles.innerFrameStyles;
-            frameStyle = frameStyles.frameStyle;
-            imgStyles = getPuzzleImgStyles(imgs, innerFrameStyles);
-            imgPaddings = frameStyles.paddingStyles;
-            innerObjs = {
-                obj1: {
-                    innerFrameStyle: '',
-                    innerObj: {
-                        obj1: {
-                            innerFrameStyle: innerFrameStyles[0],
-                            img: imgs[0],
-                            imgStyle: imgStyles[0]
-                        },
-                        obj2: {
-                            innerFrameStyle: frameStyles.outterFrameStyle,
-                            innerObj: {
-                                sameNums: Array.prototype.slice.apply(imgs, [1, 3]),
-                                obj: {
-                                    innerFrameStyle: innerFrameStyles[1],
-                                    imgStyle: imgStyles[1]
-                                }
-                            }
-                        }
-                    }
-                },
-                obj2: {
-                    innerFrameStyle: '',
-                    innerObj: {
-                        sameNums: Array.prototype.slice.apply(imgs, [3, 6]),
-                        obj: {
-                            innerFrameStyle: innerFrameStyles[3],
-                            imgStyle: imgStyles[3]
-                        }
-                    }
-                }
-            };
-        }
-        return {
-            innerObjs: innerObjs,   //Ïà²áÄÚ²¿ËùÓĞ¶ÔÏó
-            frameStyle: frameStyle,  //Ïà¿ò
-            imgPaddings: imgPaddings // ÏàÆ¬¼ä¾à
-        };
-
-    }
-
-    // Æ´Í¼²¼¾ÖÏÂÖØËÜÏà²á Æ´Í¼²¼¾Ö±È½Ï¸´ÔÓ
-    function puzzleReSet(albumStyles, innerObjs) {
-        var frame = document.createElement('DIV');
-        setStyles(frame, albumStyles);
-        if (innerObjs.sameNums) {
-            for (var i = 0; i < innerObjs.sameNums.length; i++) {
-                var box = document.createElement('DIV');
-                setStyles(box, innerObjs.obj.innerFrameStyle);
-                if (innerObjs.obj.attr) {
-                    setAttr(box, innerObjs.obj.attr);
-                }
-                if(innerObjs.obj.imgStyle){
-                    setStyles(innerObjs.sameNums[i], innerObjs.obj.imgStyle);
-                }
-
-                box.appendChild(innerObjs.sameNums[i]);
-
-                frame.appendChild(box);
+              }
             }
+          }
+        },
+        obj2: {
+          innerFrameStyle: '',
+          innerObj: {
+            obj1: {
+              innerFrameStyle: innerFrameStyles[3],
+              img: imgs[3],
+              imgStyle: imgStyles[3]
+            },
+            obj2: {
+              innerFrameStyle: innerFrameStyles[4],
+              img: imgs[4],
+              imgStyle: imgStyles[4]
+            }
+          }
+        }
+      };
+
+
+    }else if(imgs.length == 6) {
+      frameStyles = getPuzzleFrameStyle(contain, 6);
+      innerFrameStyles = frameStyles.innerFrameStyles;
+      frameStyle = frameStyles.frameStyle;
+      imgStyles = getPuzzleImgStyles(imgs, innerFrameStyles);
+      imgPaddings = frameStyles.paddingStyles;
+      innerObjs = {
+        obj1: {
+          innerFrameStyle: '',
+          innerObj: {
+            obj1: {
+              innerFrameStyle: innerFrameStyles[0],
+              img: imgs[0],
+              imgStyle: imgStyles[0]
+            },
+            obj2: {
+              innerFrameStyle: frameStyles.outterFrameStyle,
+              innerObj: {
+                sameNums: Array.prototype.slice.apply(imgs, [1, 3]),
+                obj: {
+                  innerFrameStyle: innerFrameStyles[1],
+                  imgStyle: imgStyles[1]
+                }
+              }
+            }
+          }
+        },
+        obj2: {
+          innerFrameStyle: '',
+          innerObj: {
+            sameNums: Array.prototype.slice.apply(imgs, [3, 6]),
+            obj: {
+              innerFrameStyle: innerFrameStyles[3],
+              imgStyle: imgStyles[3]
+            }
+          }
+        }
+      };
+    }
+    return {
+      innerObjs: innerObjs,   //ç›¸å†Œå†…éƒ¨æ‰€æœ‰å¯¹è±¡
+      frameStyle: frameStyle,  //ç›¸æ¡†
+      imgPaddings: imgPaddings // ç›¸ç‰‡é—´è·
+    };
+
+  }
+
+  // æ‹¼å›¾å¸ƒå±€ä¸‹é‡å¡‘ç›¸å†Œ æ‹¼å›¾å¸ƒå±€æ¯”è¾ƒå¤æ‚
+  function puzzleReSet(albumStyles, innerObjs) {
+    var frame = document.createElement('DIV');
+    setStyles(frame, albumStyles);
+    if (innerObjs.sameNums) {
+      for (var i = 0; i < innerObjs.sameNums.length; i++) {
+        var box = document.createElement('DIV');
+        setStyles(box, innerObjs.obj.innerFrameStyle);
+        if (innerObjs.obj.attr) {
+          setAttr(box, innerObjs.obj.attr);
+        }
+        if(innerObjs.obj.imgStyle){
+          setStyles(innerObjs.sameNums[i], innerObjs.obj.imgStyle);
+        }
+
+        box.appendChild(innerObjs.sameNums[i]);
+
+        frame.appendChild(box);
+      }
+    } else {
+      for (var obj in innerObjs) {
+        if (innerObjs[obj].innerObj) {//è‹¥æœ‰å­æ¨¡å—é€’å½’ç”Ÿæˆ
+          var box = puzzleReSet(innerObjs[obj].innerFrameStyle, innerObjs[obj].innerObj);
         } else {
-            for (var obj in innerObjs) {
-                if (innerObjs[obj].innerObj) {//ÈôÓĞ×ÓÄ£¿éµİ¹éÉú³É
-                    var box = puzzleReSet(innerObjs[obj].innerFrameStyle, innerObjs[obj].innerObj);
-                } else {
-                    var box = document.createElement('DIV');
-                    setStyles(box, innerObjs[obj].innerFrameStyle);//Ïà¿òÊôĞÔ
-                    if (innerObjs[obj].attr) {
-                        setAttr(box, innerObjs[obj].attr);
-                    }
-                    if (innerObjs[obj].img) {
-                        if(innerObjs[obj].imgAttr){
-                            setAttr(innerObjs[obj].img, innerObjs[obj].imgAttr);
-                        }
-                        if(innerObjs[obj].imgStyle){
-                            setStyles(innerObjs[obj].img, innerObjs[obj].imgStyle);
-                        }
-                        box.appendChild(innerObjs[obj].img);
-                    }
-                }
-                frame.appendChild(box);
+          var box = document.createElement('DIV');
+          setStyles(box, innerObjs[obj].innerFrameStyle);//ç›¸æ¡†å±æ€§
+          if (innerObjs[obj].attr) {
+            setAttr(box, innerObjs[obj].attr);
+          }
+          if (innerObjs[obj].img) {
+            if(innerObjs[obj].imgAttr){
+              setAttr(innerObjs[obj].img, innerObjs[obj].imgAttr);
             }
-        }
-        return frame;
-    }
-    //ÉèÖÃÕÚÕÖĞ§¹û´ïµ½padding
-    function setPaddings(frame, paddings) {
-        for(var style in paddings) {
-            var label = document.createElement('LABEL');
-            label.className = 'label_imgPadding';
-            setStyles(label, paddings[style]);
-            frame.appendChild(label);
-        }
-    }
-
-    /**
-     * ÆÙ²¼²¼¾ÖµÄË½ÓĞ·½·¨
-     * */
-    function createFallFrame(fallFarme) { //Éú³É¿ò¼Ü,Ä¬ÈÏËÄÁĞ
-        var cols = parseInt(fallFarme.className.split(' ')[0].split('_')[1]) || 4;
-        var col_width = (fallFarme.offsetWidth - padding.WATERFALL.y*(cols*2 + 1)) / cols;
-        var frame = document.createElement('DIV');// ×îÍâ²ã
-        var styles = {
-            width: fallFarme.clientWidth, // ×¢Òâ clientWidth + boderWidth = offsetWidth
-            minHeight: fallFarme.clientHeight
-        };
-        frame.className = 'fall_cols_parent';
-        setStyles(frame, styles);
-        for(var i=0;i<cols;i++) {//×ÓÁĞ
-            var item = document.createElement('DIV');
-            item.className = 'fall_cols';
-            var itemStyle = {
-                width: col_width,
-                minHeight: styles.minHeight,
-                marginLeft: padding.WATERFALL.y,
-                marginTop: padding.WATERFALL.y
-            };
-            if(i === (cols-1)){
-                itemStyle.marginRight = padding.WATERFALL.y;
+            if(innerObjs[obj].imgStyle){
+              setStyles(innerObjs[obj].img, innerObjs[obj].imgStyle);
             }
-            setStyles(item, itemStyle);
-            frame.appendChild(item);
+            box.appendChild(innerObjs[obj].img);
+          }
         }
-        return {
-            frame: frame,
-            col_width: col_width
-        };
+        frame.appendChild(box);
+      }
     }
-    //»ñÈ¡Ïà²áÄÚ²¿¶ÔÏóµÄÑùÊ½
-    function getPhotoStyles(frame, width) {//style , src
-        return Array.prototype.map.call(frame.children, function(img){
-            var contain = {
-                width: width,
-                height: width + Math.random()*100
-            };
-            var imgWh = {
-                width:img.naturalWidth,
-                height: img.naturalHeight
-            };
-
-            var imgStyles = getClipImgStyle(contain, imgWh);
-            return {
-                src: img.src,
-                style: imgStyles,
-                contain: contain
-            };
-        });
-
+    return frame;
+  }
+  //è®¾ç½®é®ç½©æ•ˆæœè¾¾åˆ°padding
+  function setPaddings(frame, paddings) {
+    for(var style in paddings) {
+      var label = document.createElement('LABEL');
+      label.className = 'label_imgPadding';
+      setStyles(label, paddings[style]);
+      frame.appendChild(label);
     }
+  }
 
-
-
-    //µÃµ½Ã¿Ò»ÁĞcolÄÚ²¿Í¼Æ¬¶ÔÏóµÄ×Ü¸ß¶È
-    function getHight(obj){
-        var sum = 0;
-        var items = obj.children;
-        Array.prototype.forEach.call(items, function(item){
-            var height = parseInt(item.style.height.split('px')[0]);
-            sum += height;
-        });
-        return sum;
+  /**
+   * ç€‘å¸ƒå¸ƒå±€çš„ç§æœ‰æ–¹æ³•
+   * */
+  function createFallFrame(fallFarme) { //ç”Ÿæˆæ¡†æ¶,é»˜è®¤å››åˆ—
+    var cols = parseInt(fallFarme.className.split(' ')[0].split('_')[1]) || 4;
+    var col_width = (fallFarme.offsetWidth - padding.WATERFALL.y*(cols*2 + 1)) / cols;
+    var frame = document.createElement('DIV');// æœ€å¤–å±‚
+    var styles = {
+      width: fallFarme.clientWidth, // æ³¨æ„ clientWidth + boderWidth = offsetWidth
+      minHeight: fallFarme.clientHeight
+    };
+    frame.className = 'fall_cols_parent';
+    setStyles(frame, styles);
+    for(var i=0;i<cols;i++) {//å­åˆ—
+      var item = document.createElement('DIV');
+      item.className = 'fall_cols';
+      var itemStyle = {
+        width: col_width,
+        minHeight: styles.minHeight,
+        marginLeft: padding.WATERFALL.y,
+        marginTop: padding.WATERFALL.y
+      };
+      if(i === (cols-1)){
+        itemStyle.marginRight = padding.WATERFALL.y;
+      }
+      setStyles(item, itemStyle);
+      frame.appendChild(item);
     }
-    //µÃ³ö¼´½«·ÅÈëÍ¼Æ¬µÄÄ¿±êÇøÓòDOM
-    function getFallTarget(frame) {
-        var cols = frame.children;
-        var res = getHight(cols[0]);
-        var node=cols[0];
-        for(var i=1;i<cols.length;i++){
-            var height = getHight(cols[i]);
-            if(res > height){
-                res = height;
-                node=cols[i];
-            }
-        }
-        return node;
+    return {
+      frame: frame,
+      col_width: col_width
+    };
+  }
+  //è·å–ç›¸å†Œå†…éƒ¨å¯¹è±¡çš„æ ·å¼
+  function getPhotoStyles(frame, width) {//style , src
+    return Array.prototype.map.call(frame.children, function(img){
+      var contain = {
+        width: width,
+        height: width + Math.random()*100
+      };
+      var imgWh = {
+        width:img.naturalWidth,
+        height: img.naturalHeight
+      };
+
+      var imgStyles = getClipImgStyle(contain, imgWh);
+      return {
+        src: img.src,
+        style: imgStyles,
+        contain: contain
+      };
+    });
+
+  }
+
+
+
+  //å¾—åˆ°æ¯ä¸€åˆ—colå†…éƒ¨å›¾ç‰‡å¯¹è±¡çš„æ€»é«˜åº¦
+  function getHight(obj){
+    var sum = 0;
+    var items = obj.children;
+    Array.prototype.forEach.call(items, function(item){
+      var height = parseInt(item.style.height.split('px')[0]);
+      sum += height;
+    });
+    return sum;
+  }
+  //å¾—å‡ºå³å°†æ”¾å…¥å›¾ç‰‡çš„ç›®æ ‡åŒºåŸŸDOM
+  function getFallTarget(frame) {
+    var cols = frame.children;
+    var res = getHight(cols[0]);
+    var node=cols[0];
+    for(var i=1;i<cols.length;i++){
+      var height = getHight(cols[i]);
+      if(res > height){
+        res = height;
+        node=cols[i];
+      }
     }
-    //Îªimg°ü×°Ò»¸ödivÒÔ±ã¼ÆËã ×îĞ¡¸ß¶È
-    function createChildFrame(frameObj, img) {
-        var div = document.createElement('DIV');
-        if(frameObj.attr){
-            setAttr(div, frameObj.attr);
-        }
-        if(frameObj.styles){
-            setStyles(div, frameObj.styles);
-        }
-        div.appendChild(img);
-
-        return div;
+    return node;
+  }
+  //ä¸ºimgåŒ…è£…ä¸€ä¸ªdivä»¥ä¾¿è®¡ç®— æœ€å°é«˜åº¦
+  function createChildFrame(frameObj, img) {
+    var div = document.createElement('DIV');
+    if(frameObj.attr){
+      setAttr(div, frameObj.attr);
     }
+    if(frameObj.styles){
+      setStyles(div, frameObj.styles);
+    }
+    div.appendChild(img);
 
-    /**
-     * Ä¾Í°²¼¾ÖµÄË½ÓĞ·½·¨
-     * */
+    return div;
+  }
 
-    //¸ù¾İ¿í¸ß±ÈÌáÇ°·Ö×é
-    function group(images, option) {
-        //½«Í¼Æ¬·ÖĞĞ
-        var raws=[];
-        var rawWidth=0;
-        var rawStart=0;
-        var rawEnd=0;
-        for(var j=0;j<images.length;j++){
-            images[j].height= option.rowHeight;
-            images[j].width= option.rowHeight*images[j].ratio;
-            rawWidth+=images[j].width;
-            rawEnd=j;
-            if(rawWidth>option.clientWidth){
-                var lastWidth=rawWidth-images[j].width;
-                var rawRatio=option.rowHeight/lastWidth;
-                var lastHeight=rawRatio*(option.clientWidth);//(rawEnd-rawStart-1)*8
-                raws.push({
-                    start:rawStart,
-                    end:rawEnd-1,
-                    height: lastHeight
-                });
-                rawWidth=images[j].width;
-                rawStart=j;
-            }
-        }
+  /**
+   * æœ¨æ¡¶å¸ƒå±€çš„ç§æœ‰æ–¹æ³•
+   * */
+
+  //æ ¹æ®å®½é«˜æ¯”æå‰åˆ†ç»„
+  function group(images, option) {
+    //å°†å›¾ç‰‡åˆ†è¡Œ
+    var raws=[];
+    var rawWidth=0;
+    var rawStart=0;
+    var rawEnd=0;
+    for(var j=0;j<images.length;j++){
+      images[j].height= option.rowHeight;
+      images[j].width= option.rowHeight*images[j].ratio;
+      rawWidth+=images[j].width;
+      rawEnd=j;
+      if(rawWidth>option.clientWidth){
+        var lastWidth=rawWidth-images[j].width;
+        var rawRatio=option.rowHeight/lastWidth;
+        var lastHeight=rawRatio*(option.clientWidth);//(rawEnd-rawStart-1)*8
         raws.push({
-            start: rawStart,
-            end: images.length-1,
-            height: option.rowHeight
+          start:rawStart,
+          end:rawEnd-1,
+          height: lastHeight
         });
-        return raws;
+        rawWidth=images[j].width;
+        rawStart=j;
+      }
+    }
+    raws.push({
+      start: rawStart,
+      end: images.length-1,
+      height: option.rowHeight
+    });
+    return raws;
+  }
+
+
+  /**
+   * å®ç°å…¨å±æµè§ˆåŠŸèƒ½
+   * */
+  //å…¨å±æµè§ˆçš„æ˜¾ç¤º
+  function showPhoto(img) {
+
+    var light = document.getElementsByClassName('white_content')[0];
+    var fade = document.getElementsByClassName('black_overlay')[0];
+    var width = 0.8*document.body.clientWidth;
+    var height =  0.8*document.body.clientHeight;
+    var focusStyle = {
+      width: width,
+      height: height
+    };
+
+    if(!isShowed){
+      isShowed = true;
+      var lightImg = document.createElement('IMG');
+      var imgWidth = img.naturalWidth;
+      var imgHeight = img.naturalHeight;
+      var radio = imgWidth/imgHeight;
+      if(radio >1){
+        focusStyle.height = 1/radio*0.8*width;
+      }else{
+        focusStyle.width = radio*0.8*height;
+      }
+      lightImg.src = img.src;
+      setStyles(lightImg, focusStyle);
+      setStyles(light, focusStyle);
+      fade.style.display = 'block';
+      light.appendChild(lightImg);
+      light.style.display = 'block';
+    } else {
+      isShowed = false;
+      light.innerHTML = '';
+      fade.style.display = 'none';
+      light.style.display = 'none';
     }
 
 
-    /**
-     * ÊµÏÖÈ«ÆÁä¯ÀÀ¹¦ÄÜ
-     * */
-    //È«ÆÁä¯ÀÀµÄÏÔÊ¾
-    function showPhoto(img) {
+  }
 
-        var light = document.getElementsByClassName('white_content')[0];
-        var fade = document.getElementsByClassName('black_overlay')[0];
-        var width = 0.8*document.body.clientWidth;
-        var height =  0.8*document.body.clientHeight;
-        var focusStyle = {
-            width: width,
-            height: height
-        };
+  //å¢åŠ å…¨å±æµè§ˆé®ç½©DOM
+  function addPhotoShade() {
+    var light = document.createElement('DIV');
+    var fade = document.createElement('DIV');
+    light.className="white_content";
+    light.id = 'light';
+    fade.className = 'black_overlay';
+    fade.id = 'fade';
+    light.addEventListener("click", function(e){
+      if(e.target.tagName == 'IMG'){
+        showPhoto(e.target);
+      }
+    });
+    document.body.appendChild(light);
+    document.body.appendChild(fade);
 
-        if(!isShowed){
-            isShowed = true;
-            var lightImg = document.createElement('IMG');
-            var imgWidth = img.naturalWidth;
-            var imgHeight = img.naturalHeight;
-            var radio = imgWidth/imgHeight;
-            if(radio >1){
-                focusStyle.height = 1/radio*0.8*width;
-            }else{
-                focusStyle.width = radio*0.8*height;
-            }
-            lightImg.src = img.src;
-            setStyles(lightImg, focusStyle);
-            setStyles(light, focusStyle);
-            fade.style.display = 'block';
-            light.appendChild(lightImg);
-            light.style.display = 'block';
-        } else {
-            isShowed = false;
-            light.innerHTML = '';
-            fade.style.display = 'none';
-            light.style.display = 'none';
-        }
+  }
 
+
+  /************* ä»¥ä¸‹æ˜¯æœ¬åº“æä¾›çš„å…¬æœ‰æ–¹æ³• *************/
+
+
+
+  /**
+   * åˆå§‹åŒ–å¹¶è®¾ç½®ç›¸å†Œ
+   * å½“ç›¸å†ŒåŸæœ¬åŒ…å«å›¾ç‰‡æ—¶ï¼Œè¯¥æ–¹æ³•ä¼šæ›¿æ¢åŸæœ‰å›¾ç‰‡
+   * @param {(string|string[])} image  ä¸€å¼ å›¾ç‰‡çš„ URL æˆ–å¤šå¼ å›¾ç‰‡ URL ç»„æˆçš„æ•°ç»„
+   * @param {object}            option é…ç½®é¡¹
+   */
+  IfeAlbum.prototype.setImage = function (images, option) {//æ¯æ¬¡æ‰§è¡Œè®¾ç½®ä¸€æ¬¡ç›¸å†Œ
+
+    if (typeof images === 'string') {
+      // åŒ…è£…æˆæ•°ç»„å¤„ç†
+      this.setImage([images]);
+      return;
+    }
+
+    // å®ç°æ‹¼å›¾å¸ƒå±€
+    if(option.type == 'PUZZLE'){
+      //var puzzleNewLayouts = puzzleLayout(images);//æ ¹æ®img_frameç”Ÿæˆå¸ƒå±€
+      var newFrame = puzzleReSet(images.frameStyle, images.innerObjs);//æ ¹æ®å¸ƒå±€é‡æ–°ç”Ÿæˆframe_dom
+      temp.innerHTML = '';
+      temp.appendChild(newFrame);
+      setPaddings(temp, images.imgPaddings);//è®¾ç½®é®ç½©-å›¾ç‰‡padding
+    }else if(option.type == 'WATERFALL'){
+      //åˆ›å»ºç€‘å¸ƒåŸºæœ¬å¸ƒå±€
+      var newFallFrame = createFallFrame(images);
+      //è®¡ç®—æ¯å¼ å›¾ç‰‡çš„æ ·å¼
+      temp = newFallFrame.frame;
+      var imgStyles = getPhotoStyles(images, Math.floor(newFallFrame.col_width));
+
+      var imgObjs = imgStyles.map(function(img){
+        var imgDom = document.createElement('IMG');
+        imgDom.src = img.src;
+        setStyles(imgDom, img.style);
+        img.contain.marginBottom = padding.WATERFALL.x;
+        var childFrame = createChildFrame({
+          styles: img.contain
+        }, imgDom);
+
+        return childFrame;
+      });
+      this.LAYOUT.WATERFALL[option.index] = imgObjs;//æ ¹æ®ç›¸å†Œindexæ›¿æ¢åŸæœ‰çš„img
+      return imgObjs;
+    }else if (option.type == 'BARREL'){
 
     }
 
-    //Ôö¼ÓÈ«ÆÁä¯ÀÀÕÚÕÖDOM
-    function addPhotoShade() {
-        var light = document.createElement('DIV');
-        var fade = document.createElement('DIV');
-        light.className="white_content";
-        light.id = 'light';
-        fade.className = 'black_overlay';
-        fade.id = 'fade';
-        light.addEventListener("click", function(e){
-            if(e.target.tagName == 'IMG'){
-                showPhoto(e.target);
-            }
-        });
-        document.body.appendChild(light);
-        document.body.appendChild(fade);
+  };
 
+  /**
+   * åˆå§‹åŒ–å¹¶è®¾ç½®æ‰€æœ‰å«æœ‰æŒ‡å®šclassNameçš„ç›¸å†Œ
+   * å½“ç›¸å†ŒåŸæœ¬åŒ…å«å›¾ç‰‡æ—¶ï¼Œè¯¥æ–¹æ³•ä¼šæ›¿æ¢åŸæœ‰å›¾ç‰‡
+   */
+  IfeAlbum.prototype.run = function () {//æ¯æ¬¡æ‰§è¡Œè®¾ç½®ä¸€æ¬¡ç›¸å†Œ
+    addPhotoShade();//æ·»åŠ äº‹ä»¶
+    // å®ç°æ‹¼å›¾å¸ƒå±€
+    var _this = this;
+    this.setLayout();
+    var layouts = this.getLayout();
+    var puzzles = layouts.PUZZLE;//æ‰€æœ‰ç›¸å†Œ
+    var falls = layouts.WATERFALL;
+    var buckets = layouts.BARREL;
+
+    puzzles.forEach(function(frame){
+      temp = frame;//æŠŠframeæ”¾å…¥ä¸´æ—¶åŒº
+      var puzzleNewLayouts = _this.addImage(frame, {type: 'PUZZLE'});//ç”Ÿæˆå¸ƒå±€
+      _this.setImage(puzzleNewLayouts, {type: 'PUZZLE'});//é‡æ–°è®¾ç½®ç…§ç‰‡
+    });
+    falls.forEach(function(frame, index){
+      var option = {
+        type: 'WATERFALL',
+        index: index
+      };
+      var imgObjs = _this.setImage(frame, option);
+      //ç”Ÿæˆå’Œæ·»åŠ å›¾ç‰‡
+      _this.addImage(imgObjs, option);
+      //æ›¿æ¢åŸæœ‰ç›¸å†Œçš„å­å…ƒç´ 
+      frame.innerHTML = '';
+      frame.appendChild(temp);
+
+    });
+    buckets.forEach(function(bucket){
+      var images = _this.getImageDomElements(bucket);
+      temp = bucket;
+      var groups = group(images, {
+        clientWidth: bucket.clientWidth,
+        rowHeight: 70
+      });
+      bucket.innerHTML = '';
+      _this.addImage(images, {
+        groups: groups,
+        type: 'BARREL'
+      });
+    });
+
+
+  };
+
+  /**
+   * è·å–ç›¸å†Œæ‰€æœ‰å›¾åƒå¯¹åº”çš„ DOM å…ƒç´ 
+   * å¯ä»¥ä¸æ˜¯ ï¼Œè€Œæ˜¯æ›´å¤–å±‚çš„å…ƒç´ 
+   * @return {HTMLElement[]} ç›¸å†Œæ‰€æœ‰å›¾åƒå¯¹åº”çš„ DOM å…ƒç´ ç»„æˆçš„æ•°ç»„
+   */
+  IfeAlbum.prototype.getImageDomElements = function(frame) {
+    //æ‹¼å›¾å¸ƒå±€å¤„ç†
+    var imgs = frame.children;
+    return Array.prototype.map.call(imgs, function(img){
+      console.log(img,img.naturalWidth, img.naturalHeight, img.naturalWidth/img.naturalHeight);
+      var ratio = img.naturalWidth/img.naturalHeight;//è·å–ä¸ºç©ºçš„æƒ…å†µ
+      if(!ratio){
+        ratio = 1;
+      }
+      return {
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        ratio: ratio,
+        src: img.src
+      }
+    });
+
+  };
+
+
+
+  /**
+   * å‘ç›¸å†Œæ·»åŠ å›¾ç‰‡
+   * åœ¨æ‹¼å›¾å¸ƒå±€ä¸‹ï¼Œæ ¹æ®å›¾ç‰‡æ•°é‡é‡æ–°è®¡ç®—å¸ƒå±€æ–¹å¼ï¼›å…¶ä»–å¸ƒå±€ä¸‹å‘å°¾éƒ¨è¿½åŠ å›¾ç‰‡
+   * @param {(string|string[])} image ä¸€å¼ å›¾ç‰‡çš„ URL æˆ–å¤šå¼ å›¾ç‰‡ URL ç»„æˆçš„æ•°ç»„
+   */
+  IfeAlbum.prototype.addImage = function (image, option) {
+    //æ ¹æ®imgsè®¡ç®—æ ·å¼
+    if(option.type == 'PUZZLE'){
+      var puzzleNewLayouts = puzzleLayout(image);//æ ¹æ®img_frameç”Ÿæˆå¸ƒå±€
+      return puzzleNewLayouts;
+    }else if(option.type=='WATERFALL'){
+      image.forEach(function(img){
+        var target = getFallTarget(temp);
+        target.appendChild(img);
+      });
+    }else if(option.type = 'BARREL'){
+      option.groups.forEach(function(group){
+        var nums = group.end - group.start +1;
+        var interval = padding[option.type].x;
+        var lastInterval = (nums-1)*interval/nums;
+        console.log(lastInterval);
+        for(var i=group.start;i<=group.end;i++){
+          var img = document.createElement('IMG');
+          var style = {
+            width: Math.floor(image[i].ratio*group.height-lastInterval)-0.5,//ä¸çŸ¥é“ä¸ºä»€ä¹ˆæ€»æœ‰è¯¯å·®
+            height: Math.floor(group.height),
+            marginBottom: padding[option.type].y
+          };
+          if(i!=group.end){
+            style.marginRight = interval;
+          }
+          setStyles(img, style);
+          img.src = image[i].src;
+          temp.appendChild(img);
+        }
+      });
+    }
+
+  };
+
+
+
+  /**
+   * ç§»é™¤ç›¸å†Œä¸­çš„å›¾ç‰‡
+   * @param  {(HTMLElement|HTMLElement[])} image éœ€è¦ç§»é™¤çš„å›¾ç‰‡
+   * @return {boolean} æ˜¯å¦å…¨éƒ¨ç§»é™¤æˆåŠŸ
+   */
+  IfeAlbum.prototype.removeImage = function (image) {
+
+  };
+
+
+
+  /**
+   * è®¾ç½®ç›¸å†Œçš„å¸ƒå±€
+   * @param {number} layout å¸ƒå±€å€¼ï¼ŒIfeAlbum.LAYOUT ä¸­çš„å€¼
+   */
+  IfeAlbum.prototype.setLayout = function () {//å­˜å‚¨ç›¸å†Œæ‰€æœ‰ä¿¡æ¯
+    //type == 'PUZZLE' || type == 'WATERFALL' || type == 'BARREL'
+    for(var key in this.LAYOUT){
+      if(key == 'PUZZLE'){
+        var divs = document.getElementsByClassName('puzzle');
+        this.LAYOUT[key] = getFrames(divs, this.isFullscreenEnabled);
+
+      }else if(key == 'WATERFALL'){
+        this.LAYOUT[key] = getFrames(document.querySelectorAll('div[class^="waterfall"]'), this.isFullscreenEnabled);
+
+      }else if(key == 'BARREL'){
+        var buckets = document.getElementsByClassName('barrel');
+        this.LAYOUT[key] = getFrames(buckets, this.isFullscreenEnabled);
+      }
     }
 
 
-    /************* ÒÔÏÂÊÇ±¾¿âÌá¹©µÄ¹«ÓĞ·½·¨ *************/
-
-
-
-    /**
-     * ³õÊ¼»¯²¢ÉèÖÃÏà²á
-     * µ±Ïà²áÔ­±¾°üº¬Í¼Æ¬Ê±£¬¸Ã·½·¨»áÌæ»»Ô­ÓĞÍ¼Æ¬
-     * @param {(string|string[])} image  Ò»ÕÅÍ¼Æ¬µÄ URL »ò¶àÕÅÍ¼Æ¬ URL ×é³ÉµÄÊı×é
-     * @param {object}            option ÅäÖÃÏî
-     */
-    IfeAlbum.prototype.setImage = function (images, option) {//Ã¿´ÎÖ´ĞĞÉèÖÃÒ»´ÎÏà²á
-
-        if (typeof images === 'string') {
-            // °ü×°³ÉÊı×é´¦Àí
-            this.setImage([images]);
-            return;
-        }
-
-        // ÊµÏÖÆ´Í¼²¼¾Ö
-        if(option.type == 'PUZZLE'){
-            //var puzzleNewLayouts = puzzleLayout(images);//¸ù¾İimg_frameÉú³É²¼¾Ö
-            var newFrame = puzzleReSet(images.frameStyle, images.innerObjs);//¸ù¾İ²¼¾ÖÖØĞÂÉú³Éframe_dom
-            temp.innerHTML = '';
-            temp.appendChild(newFrame);
-            setPaddings(temp, images.imgPaddings);//ÉèÖÃÕÚÕÖ-Í¼Æ¬padding
-        }else if(option.type == 'WATERFALL'){
-            //´´½¨ÆÙ²¼»ù±¾²¼¾Ö
-            var newFallFrame = createFallFrame(images);
-            //¼ÆËãÃ¿ÕÅÍ¼Æ¬µÄÑùÊ½
-            temp = newFallFrame.frame;
-            var imgStyles = getPhotoStyles(images, Math.floor(newFallFrame.col_width));
-
-            var imgObjs = imgStyles.map(function(img){
-                var imgDom = document.createElement('IMG');
-                imgDom.src = img.src;
-                setStyles(imgDom, img.style);
-                img.contain.marginBottom = padding.WATERFALL.x;
-                var childFrame = createChildFrame({
-                    styles: img.contain
-                }, imgDom);
-
-                return childFrame;
-            });
-            this.LAYOUT.WATERFALL[option.index] = imgObjs;//¸ù¾İÏà²áindexÌæ»»Ô­ÓĞµÄimg
-            return imgObjs;
-        }else if (option.type == 'BARREL'){
-
-        }
-
-    };
-
-    /**
-     * ³õÊ¼»¯²¢ÉèÖÃËùÓĞº¬ÓĞÖ¸¶¨classNameµÄÏà²á
-     * µ±Ïà²áÔ­±¾°üº¬Í¼Æ¬Ê±£¬¸Ã·½·¨»áÌæ»»Ô­ÓĞÍ¼Æ¬
-     */
-    IfeAlbum.prototype.run = function () {//Ã¿´ÎÖ´ĞĞÉèÖÃÒ»´ÎÏà²á
-        addPhotoShade();//Ìí¼ÓÊÂ¼ş
-        // ÊµÏÖÆ´Í¼²¼¾Ö
-        var _this = this;
-        this.setLayout();
-        var layouts = this.getLayout();
-        var puzzles = layouts.PUZZLE;//ËùÓĞÏà²á
-        var falls = layouts.WATERFALL;
-        var buckets = layouts.BARREL;
-
-        puzzles.forEach(function(frame){
-            temp = frame;//°Ñframe·ÅÈëÁÙÊ±Çø
-            var puzzleNewLayouts = _this.addImage(frame, {type: 'PUZZLE'});//Éú³É²¼¾Ö
-            _this.setImage(puzzleNewLayouts, {type: 'PUZZLE'});//ÖØĞÂÉèÖÃÕÕÆ¬
-        });
-        falls.forEach(function(frame, index){
-            var option = {
-                type: 'WATERFALL',
-                index: index
-            };
-            var imgObjs = _this.setImage(frame, option);
-            //Éú³ÉºÍÌí¼ÓÍ¼Æ¬
-            _this.addImage(imgObjs, option);
-            //Ìæ»»Ô­ÓĞÏà²áµÄ×ÓÔªËØ
-            frame.innerHTML = '';
-            frame.appendChild(temp);
-
-        });
-        buckets.forEach(function(bucket){
-            var images = _this.getImageDomElements(bucket);
-            temp = bucket;
-            var groups = group(images, {
-                clientWidth: bucket.clientWidth,
-                rowHeight: 70
-            });
-            bucket.innerHTML = '';
-            _this.addImage(images, {
-                groups: groups,
-                type: 'BARREL'
-            });
-        });
-
-
-    };
-
-    /**
-     * »ñÈ¡Ïà²áËùÓĞÍ¼Ïñ¶ÔÓ¦µÄ DOM ÔªËØ
-     * ¿ÉÒÔ²»ÊÇ £¬¶øÊÇ¸üÍâ²ãµÄÔªËØ
-     * @return {HTMLElement[]} Ïà²áËùÓĞÍ¼Ïñ¶ÔÓ¦µÄ DOM ÔªËØ×é³ÉµÄÊı×é
-     */
-    IfeAlbum.prototype.getImageDomElements = function(frame) {
-        //Æ´Í¼²¼¾Ö´¦Àí
-        var imgs = frame.children;
-        return Array.prototype.map.call(imgs, function(img){
-            console.log(img,img.naturalWidth, img.naturalHeight, img.naturalWidth/img.naturalHeight);
-            var ratio = img.naturalWidth/img.naturalHeight;//»ñÈ¡Îª¿ÕµÄÇé¿ö
-            if(!ratio){
-                ratio = 1;
-            }
-            return {
-                width: img.naturalWidth,
-                height: img.naturalHeight,
-                ratio: ratio,
-                src: img.src
-            }
-        });
-
-    };
-
-
-
-    /**
-     * ÏòÏà²áÌí¼ÓÍ¼Æ¬
-     * ÔÚÆ´Í¼²¼¾ÖÏÂ£¬¸ù¾İÍ¼Æ¬ÊıÁ¿ÖØĞÂ¼ÆËã²¼¾Ö·½Ê½£»ÆäËû²¼¾ÖÏÂÏòÎ²²¿×·¼ÓÍ¼Æ¬
-     * @param {(string|string[])} image Ò»ÕÅÍ¼Æ¬µÄ URL »ò¶àÕÅÍ¼Æ¬ URL ×é³ÉµÄÊı×é
-     */
-    IfeAlbum.prototype.addImage = function (image, option) {
-        //¸ù¾İimgs¼ÆËãÑùÊ½
-        if(option.type == 'PUZZLE'){
-            var puzzleNewLayouts = puzzleLayout(image);//¸ù¾İimg_frameÉú³É²¼¾Ö
-            return puzzleNewLayouts;
-        }else if(option.type=='WATERFALL'){
-            image.forEach(function(img){
-                var target = getFallTarget(temp);
-                target.appendChild(img);
-            });
-        }else if(option.type = 'BARREL'){
-            option.groups.forEach(function(group){
-                var nums = group.end - group.start +1;
-                var interval = padding[option.type].x;
-                var lastInterval = (nums-1)*interval/nums;
-                console.log(lastInterval);
-                for(var i=group.start;i<=group.end;i++){
-                    var img = document.createElement('IMG');
-                    var style = {
-                        width: Math.floor(image[i].ratio*group.height-lastInterval)-0.5,//²»ÖªµÀÎªÊ²Ã´×ÜÓĞÎó²î
-                        height: Math.floor(group.height),
-                        marginBottom: padding[option.type].y
-                    };
-                    if(i!=group.end){
-                        style.marginRight = interval;
-                    }
-                    setStyles(img, style);
-                    img.src = image[i].src;
-                    temp.appendChild(img);
-                }
-            });
-        }
-
-    };
-
-
-
-    /**
-     * ÒÆ³ıÏà²áÖĞµÄÍ¼Æ¬
-     * @param  {(HTMLElement|HTMLElement[])} image ĞèÒªÒÆ³ıµÄÍ¼Æ¬
-     * @return {boolean} ÊÇ·ñÈ«²¿ÒÆ³ı³É¹¦
-     */
-    IfeAlbum.prototype.removeImage = function (image) {
-
-    };
-
-
-
-    /**
-     * ÉèÖÃÏà²áµÄ²¼¾Ö
-     * @param {number} layout ²¼¾ÖÖµ£¬IfeAlbum.LAYOUT ÖĞµÄÖµ
-     */
-    IfeAlbum.prototype.setLayout = function () {//´æ´¢Ïà²áËùÓĞĞÅÏ¢
-        //type == 'PUZZLE' || type == 'WATERFALL' || type == 'BARREL'
-        for(var key in this.LAYOUT){
-            if(key == 'PUZZLE'){
-                var divs = document.getElementsByClassName('puzzle');
-                this.LAYOUT[key] = getFrames(divs, this.isFullscreenEnabled);
-
-            }else if(key == 'WATERFALL'){
-                this.LAYOUT[key] = getFrames(document.querySelectorAll('div[class^="waterfall"]'), this.isFullscreenEnabled);
-
-            }else if(key == 'BARREL'){
-                var buckets = document.getElementsByClassName('barrel');
-                this.LAYOUT[key] = getFrames(buckets, this.isFullscreenEnabled);
-            }
-        }
-
-
-    };
-
-
-
-    /**
-     * »ñÈ¡Ïà²áµÄ²¼¾Ö
-     * @return {number} ²¼¾ÖÃ¶¾ÙÀàĞÍµÄÖµ
-     */
-    IfeAlbum.prototype.getLayout = function() {
-        return this.LAYOUT;
-    };
-
-
-
-    /**
-     * ÉèÖÃÍ¼Æ¬Ö®¼äµÄ¼ä¾à
-     * ×¢ÒâÕâ¸öÖµ½ö´ú±íÍ¼Æ¬¼äµÄ¼ä¾à£¬²»Ó¦Ö±½ÓÓÃÓÚÍ¼Æ¬µÄ margin ÊôĞÔ£¬Èç×óÉÏ½ÇÍ¼µÄ×ó±ßºÍÉÏ±ßÓ¦¸Ã½ôÌùÏà²áµÄ×ó±ßºÍÉÏ±ß
-     * Ïà²á±¾ÉíµÄ padding Ê¼ÖÕÊÇ 0£¬ÓÃ»§ÏëĞŞ¸ÄÏà²áÍâ¿òµÄ¿Õ°×ĞèÒª×Ô¼ºÉèÖÃÏà¿òÔªËØµÄ padding
-     * @param {number}  x  Í¼Æ¬Ö®¼äµÄºáÏò¼ä¾à
-     * @param {number} [y] Í¼Æ¬Ö®¼äµÄ×İÏò¼ä¾à£¬Èç¹ûÊÇ undefined ÔòµÈÍ¬ÓÚ x
-     */
-    IfeAlbum.prototype.setGutter = function (type, x, y) {
-        if(typeof x != 'number'){
-            return;
-        }
-        if(!y || typeof y!='number'){
-            y = x;
-        }
-        if(type == 'PUZZLE' || type == 'WATERFALL' || type == 'BARREL'){
-            padding[type].x = x;
-            padding[type].y = y;
-        }
-    };
-
-
-
-    /**
-     * ÔÊĞíµã»÷Í¼Æ¬Ê±È«ÆÁä¯ÀÀÍ¼Æ¬
-     */
-    IfeAlbum.prototype.enableFullscreen = function () {
-        this.isFullScreen = true;
-    };
-
-
-
-    /**
-     * ½ûÖ¹µã»÷Í¼Æ¬Ê±È«ÆÁä¯ÀÀÍ¼Æ¬
-     */
-    IfeAlbum.prototype.disableFullscreen = function () {
-        this.isFullScreen = false;
-    };
-
-
-
-    /**
-     * »ñÈ¡µã»÷Í¼Æ¬Ê±È«ÆÁä¯ÀÀÍ¼Æ¬ÊÇ·ñ±»ÔÊĞí
-     * @return {boolean} ÊÇ·ñÔÊĞíÈ«ÆÁä¯ÀÀ
-     */
-    IfeAlbum.prototype.isFullscreenEnabled = function () {
-        return this.isFullScreen;
-    };
-
-
-    /**
-     * ÉèÖÃÄ¾Í°Ä£Ê½Ã¿ĞĞÍ¼Æ¬ÊıµÄÉÏÏÂÏŞ
-     * @param {number} min ×îÉÙÍ¼Æ¬Êı£¨º¬£©
-     * @param {number} max ×î¶àÍ¼Æ¬Êı£¨º¬£©
-     */
-    IfeAlbum.prototype.setBarrelBin = function (min, max) {
-
-        // ×¢ÒâÒì³£Çé¿öµÄ´¦Àí£¬×öÒ»¸ö½¡×³µÄ¿â
-        if (min === undefined || max === undefined || min > max) {
-            console.error('...');
-            return;
-        }
-
-        // ÄãµÄÊµÏÖ
-
-    };
-
-
-
-    /**
-     * »ñÈ¡Ä¾Í°Ä£Ê½Ã¿ĞĞÍ¼Æ¬ÊıµÄÉÏÏŞ
-     * @return {number} ×î¶àÍ¼Æ¬Êı£¨º¬£©
-     */
-    IfeAlbum.prototype.getBarrelBinMax = function () {
-
-    };
-
-
-
-    /**
-     * »ñÈ¡Ä¾Í°Ä£Ê½Ã¿ĞĞÍ¼Æ¬ÊıµÄÏÂÏŞ
-     * @return {number} ×îÉÙÍ¼Æ¬Êı£¨º¬£©
-     */
-    IfeAlbum.prototype.getBarrelBinMin = function () {
-
-    };
-
-
-
-    /**
-     * ÉèÖÃÄ¾Í°Ä£Ê½Ã¿ĞĞ¸ß¶ÈµÄÉÏÏÂÏŞ£¬µ¥Î»ÏñËØ
-     * @param {number} min ×îĞ¡¸ß¶È
-     * @param {number} max ×î´ó¸ß¶È
-     */
-    IfeAlbum.prototype.setBarrelHeight = function (min, max) {
-
-    };
-
-
-
-    /**
-     * »ñÈ¡Ä¾Í°Ä£Ê½Ã¿ĞĞ¸ß¶ÈµÄÉÏÏŞ
-     * @return {number} ×î¶àÍ¼Æ¬Êı£¨º¬£©
-     */
-    IfeAlbum.prototype.getBarrelHeightMax = function () {
-
-    };
-
-
-
-    /**
-     * »ñÈ¡Ä¾Í°Ä£Ê½Ã¿ĞĞ¸ß¶ÈµÄÏÂÏŞ
-     * @return {number} ×îÉÙÍ¼Æ¬Êı£¨º¬£©
-     */
-    IfeAlbum.prototype.getBarrelHeightMin = function () {
-
-    };
-
-
-
-    // ÄãÏëÔö¼ÓµÄÆäËû½Ó¿Ú
-
-
-
-    /************* ÒÔÉÏÊÇ±¾¿âÌá¹©µÄ¹«ÓĞ·½·¨ *************/
-
-
-
-    // ÊµÀı»¯
-    if (typeof window.ifeAlbum === 'undefined') {
-        // Ö»ÓĞµ±Î´³õÊ¼»¯Ê±²ÅÊµÀı»¯
-        window.ifeAlbum = new IfeAlbum();
-
+  };
+
+
+
+  /**
+   * è·å–ç›¸å†Œçš„å¸ƒå±€
+   * @return {number} å¸ƒå±€æšä¸¾ç±»å‹çš„å€¼
+   */
+  IfeAlbum.prototype.getLayout = function() {
+    return this.LAYOUT;
+  };
+
+
+
+  /**
+   * è®¾ç½®å›¾ç‰‡ä¹‹é—´çš„é—´è·
+   * æ³¨æ„è¿™ä¸ªå€¼ä»…ä»£è¡¨å›¾ç‰‡é—´çš„é—´è·ï¼Œä¸åº”ç›´æ¥ç”¨äºå›¾ç‰‡çš„ margin å±æ€§ï¼Œå¦‚å·¦ä¸Šè§’å›¾çš„å·¦è¾¹å’Œä¸Šè¾¹åº”è¯¥ç´§è´´ç›¸å†Œçš„å·¦è¾¹å’Œä¸Šè¾¹
+   * ç›¸å†Œæœ¬èº«çš„ padding å§‹ç»ˆæ˜¯ 0ï¼Œç”¨æˆ·æƒ³ä¿®æ”¹ç›¸å†Œå¤–æ¡†çš„ç©ºç™½éœ€è¦è‡ªå·±è®¾ç½®ç›¸æ¡†å…ƒç´ çš„ padding
+   * @param {string}  type ç±»å‹
+   * @param {number}  x  å›¾ç‰‡ä¹‹é—´çš„æ¨ªå‘é—´è·
+   * @param {number} [y] å›¾ç‰‡ä¹‹é—´çš„çºµå‘é—´è·ï¼Œå¦‚æœæ˜¯ undefined åˆ™ç­‰åŒäº x
+   */
+  IfeAlbum.prototype.setGutter = function (type, x, y) {
+    console.log(arguments);
+    if(typeof x != 'number'){
+      return;
     }
+    if(!y || typeof y!='number'){
+      y = x;
+    }
+    if(type == 'PUZZLE' || type == 'WATERFALL' || type == 'BARREL'){
+      padding[type].x = x;
+      padding[type].y = y;
+    }
+  };
+
+
+
+  /**
+   * å…è®¸ç‚¹å‡»å›¾ç‰‡æ—¶å…¨å±æµè§ˆå›¾ç‰‡
+   */
+  IfeAlbum.prototype.enableFullscreen = function () {
+    this.isFullScreen = true;
+  };
+
+
+
+  /**
+   * ç¦æ­¢ç‚¹å‡»å›¾ç‰‡æ—¶å…¨å±æµè§ˆå›¾ç‰‡
+   */
+  IfeAlbum.prototype.disableFullscreen = function () {
+    this.isFullScreen = false;
+  };
+
+
+
+  /**
+   * è·å–ç‚¹å‡»å›¾ç‰‡æ—¶å…¨å±æµè§ˆå›¾ç‰‡æ˜¯å¦è¢«å…è®¸
+   * @return {boolean} æ˜¯å¦å…è®¸å…¨å±æµè§ˆ
+   */
+  IfeAlbum.prototype.isFullscreenEnabled = function () {
+    return this.isFullScreen;
+  };
+
+
+  /**
+   * è®¾ç½®æœ¨æ¡¶æ¨¡å¼æ¯è¡Œå›¾ç‰‡æ•°çš„ä¸Šä¸‹é™
+   * @param {number} min æœ€å°‘å›¾ç‰‡æ•°ï¼ˆå«ï¼‰
+   * @param {number} max æœ€å¤šå›¾ç‰‡æ•°ï¼ˆå«ï¼‰
+   */
+  IfeAlbum.prototype.setBarrelBin = function (min, max) {
+
+    // æ³¨æ„å¼‚å¸¸æƒ…å†µçš„å¤„ç†ï¼Œåšä¸€ä¸ªå¥å£®çš„åº“
+    if (min === undefined || max === undefined || min > max) {
+      console.error('...');
+      return;
+    }
+
+    // ä½ çš„å®ç°
+
+  };
+
+
+
+  /**
+   * è·å–æœ¨æ¡¶æ¨¡å¼æ¯è¡Œå›¾ç‰‡æ•°çš„ä¸Šé™
+   * @return {number} æœ€å¤šå›¾ç‰‡æ•°ï¼ˆå«ï¼‰
+   */
+  IfeAlbum.prototype.getBarrelBinMax = function () {
+
+  };
+
+
+
+  /**
+   * è·å–æœ¨æ¡¶æ¨¡å¼æ¯è¡Œå›¾ç‰‡æ•°çš„ä¸‹é™
+   * @return {number} æœ€å°‘å›¾ç‰‡æ•°ï¼ˆå«ï¼‰
+   */
+  IfeAlbum.prototype.getBarrelBinMin = function () {
+
+  };
+
+
+
+  /**
+   * è®¾ç½®æœ¨æ¡¶æ¨¡å¼æ¯è¡Œé«˜åº¦çš„ä¸Šä¸‹é™ï¼Œå•ä½åƒç´ 
+   * @param {number} min æœ€å°é«˜åº¦
+   * @param {number} max æœ€å¤§é«˜åº¦
+   */
+  IfeAlbum.prototype.setBarrelHeight = function (min, max) {
+
+  };
+
+
+
+  /**
+   * è·å–æœ¨æ¡¶æ¨¡å¼æ¯è¡Œé«˜åº¦çš„ä¸Šé™
+   * @return {number} æœ€å¤šå›¾ç‰‡æ•°ï¼ˆå«ï¼‰
+   */
+  IfeAlbum.prototype.getBarrelHeightMax = function () {
+
+  };
+
+
+
+  /**
+   * è·å–æœ¨æ¡¶æ¨¡å¼æ¯è¡Œé«˜åº¦çš„ä¸‹é™
+   * @return {number} æœ€å°‘å›¾ç‰‡æ•°ï¼ˆå«ï¼‰
+   */
+  IfeAlbum.prototype.getBarrelHeightMin = function () {
+
+  };
+
+
+
+  // ä½ æƒ³å¢åŠ çš„å…¶ä»–æ¥å£
+
+
+
+  /************* ä»¥ä¸Šæ˜¯æœ¬åº“æä¾›çš„å…¬æœ‰æ–¹æ³• *************/
+
+
+
+  // å®ä¾‹åŒ–
+  if (typeof window.ifeAlbum === 'undefined') {
+    // åªæœ‰å½“æœªåˆå§‹åŒ–æ—¶æ‰å®ä¾‹åŒ–
+    window.ifeAlbum = new IfeAlbum();
+   
+
+  }
 
 }(window));
